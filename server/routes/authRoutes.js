@@ -29,7 +29,8 @@ router.post('/signup', async (req, res) => {
             });
         }
     } catch (error) {
-        res.status(400).json({ message: 'Invalid user data' });
+        console.error('Signup error:', error);
+        res.status(400).json({ message: 'Invalid user data', error: error.message });
     }
 });
 
