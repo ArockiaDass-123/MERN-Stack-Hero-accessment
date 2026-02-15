@@ -27,7 +27,7 @@ typings/
 .stylelintcache
 
 # dotenv environment variable files
-.env
+# .env (commented out to allow production .env in client/)
 .env.test
 .env.production
 .env.local
