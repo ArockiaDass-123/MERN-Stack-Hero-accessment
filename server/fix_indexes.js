@@ -1,27 +1,36 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 
-async function fix() {
+async function fixUserIndexes() {
     try {
+        console.log('Connecting to MongoDB...');
         await mongoose.connect(process.env.MONGODB_URI);
-        const db = mongoose.connection.db;
-        const collection = db.collection('registrations');
+        console.log('Connected!');
 
-        const indexes = await collection.indexes();
-        console.log('Current Indexes:', JSON.stringify(indexes, null, 2));
+        const User = mongoose.connection.collection('users');
 
-        for (const index of indexes) {
-            if (index.name !== '_id_') {
-                console.log(`Dropping index: ${index.name}`);
-                await collection.dropIndex(index.name);
-            }
+        console.log('Current indexes:');
+        const indexes = await User.indexes();
+        console.log(JSON.stringify(indexes, null, 2));
+
+        console.log('\nDropping username index if it exists...');
+        try {
+            await User.dropIndex('username_1');
+            console.log('Dropped username_1 index');
+        } catch (err) {
+            console.log('No username_1 index to drop:', err.message);
         }
 
-        console.log('Indexes dropped. Mongoose will recreate them on next run.');
-        process.exit();
-    } catch (err) {
-        console.error(err);
+        console.log('\nFinal indexes:');
+        const finalIndexes = await User.indexes();
+        console.log(JSON.stringify(finalIndexes, null, 2));
+
+        await mongoose.connection.close();
+        console.log('\nDone!');
+    } catch (error) {
+        console.error('Error:', error);
         process.exit(1);
     }
 }
-fix();
+
+fixUserIndexes();
