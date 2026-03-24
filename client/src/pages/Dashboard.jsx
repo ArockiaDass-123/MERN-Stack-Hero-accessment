@@ -2,17 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { eventService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import EventCard from '../components/EventCard';
-import { Clock, History, CalendarDays, XCircle } from 'lucide-react';
+import { Clock, History, CalendarDays, XCircle, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
     const [events, setEvents] = useState([]);
+    const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [recommendationsLoading, setRecommendationsLoading] = useState(true);
+    const [hasHistory, setHasHistory] = useState(false);
     const { user } = useAuth();
 
     useEffect(() => {
         fetchMyEvents();
-    }, []);
+        if (user?._id) {
+            fetchRecommendations();
+        }
+    }, [user?._id]);
 
     const fetchMyEvents = async () => {
         try {
@@ -23,6 +29,26 @@ const Dashboard = () => {
             setEvents([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchRecommendations = async () => {
+        try {
+            setRecommendationsLoading(true);
+            const data = await eventService.getRecommendations(user._id);
+            if (data.hasHistory) {
+                setRecommendations(Array.isArray(data.recommendations) ? data.recommendations : []);
+                setHasHistory(true);
+            } else {
+                setRecommendations([]);
+                setHasHistory(false);
+            }
+        } catch (error) {
+            console.error('Error fetching recommendations:', error);
+            setRecommendations([]);
+            setHasHistory(false);
+        } finally {
+            setRecommendationsLoading(false);
         }
     };
 
@@ -39,6 +65,37 @@ const Dashboard = () => {
                 <h1 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>User Dashboard</h1>
                 <p style={{ color: 'var(--text-muted)' }}>Welcome back, {user?.name}. Here are your registered events.</p>
             </div>
+
+            {/* AI Recommendations Section */}
+            <section style={{ marginBottom: '4rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem', fontSize: '1.5rem' }}>
+                    <Sparkles size={24} color="var(--primary)" /> Recommended for You
+                </h2>
+
+                {recommendationsLoading ? (
+                    <div style={{ textAlign: 'center', padding: '2rem' }}>
+                        <div className="spinner"></div>
+                    </div>
+                ) : hasHistory ? (
+                    recommendations.length > 0 ? (
+                        <div className="grid grid-cols-3">
+                            {recommendations.map(event => (
+                                <div key={event._id}>
+                                    <EventCard event={event} />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                            <p>No matching recommendations found. Check back later!</p>
+                        </div>
+                    )
+                ) : (
+                    <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        <p>Register for events to get personalized recommendations</p>
+                    </div>
+                )}
+            </section>
 
             <section style={{ marginBottom: '4rem' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem', fontSize: '1.5rem' }}>

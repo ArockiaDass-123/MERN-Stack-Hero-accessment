@@ -56,6 +56,10 @@ export const eventService = {
     getMyEvents: async () => {
         const response = await api.get('/events/user/my-events');
         return response.data;
+    },
+    getRecommendations: async (userId) => {
+        const response = await api.get(`/recommendations/${userId}`);
+        return response.data;
     }
 };
 
