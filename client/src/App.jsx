@@ -35,7 +35,7 @@ function App() {
                         </Routes>
                     </main>
                     <footer style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)' }}>
-                        <p>&copy; 2026 EventFlow - Bellcorp Assignment. All rights reserved.</p>
+                        <p>&copy; 2026 EventFlow. All rights reserved.</p>
                     </footer>
                 </div>
             </Router>
